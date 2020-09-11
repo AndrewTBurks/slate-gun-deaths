@@ -1,8 +1,9 @@
 let topo = null;
 let STATES = null;
+let NATION = null;
 
-const path = d3.geoPath();
-const projection = path.projection();
+const projection = d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+const path = d3.geoPath(projection);
 
 console.log(path.stream);
 
@@ -20,14 +21,14 @@ export default function render({ svg, width, height }, onSelect) {
     .attr("viewBox", "0 0 1000 700")
     .attr("preserveAspectRatio", "xMidYMid meet");
 
-  getStates().then((states) => {
+  getStates().then(({ states, nation }) => {
+    console.log(states);
+
     statesGroup
       .selectAll("path")
       .data(states)
       .join("path")
-      .attr("fill", (d) => "#fdc08622")
-      .attr("stroke", "#fdc086")
-      .attr("stroke-linejoin", "round")
+      .attr("class", "state")
       .attr("d", path)
       .append("title")
       .text((d) => {
@@ -39,14 +40,18 @@ export default function render({ svg, width, height }, onSelect) {
 function getStates() {
   return new Promise((resolve, reject) => {
     if (!topo || !STATES) {
-      d3.json("https://cdn.jsdelivr.net/npm/us-atlas@2/us/10m.json")
+      d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json")
+
         .then((us) => {
           topo = us;
+          console.log(us);
 
           STATES = topojson.feature(us, us.objects.states, (a, b) => a !== b)
             .features;
+          NATION = topojson.feature(us, us.objects.nation, (a, b) => a !== b)
+            .features;
 
-          resolve(STATES);
+          resolve({ states: STATES, nation: NATION });
         })
         .catch(reject);
     } else {

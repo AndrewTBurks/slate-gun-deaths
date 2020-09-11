@@ -25,7 +25,9 @@ function sizeSVG(container, svg) {
 export default function createSvg(elem, then) {
   const container = d3.select(elem);
 
-  const svg = container.append("svg");
+  const svg = container
+    .append("svg")
+    .attr("shape-rendering", "geometricPrecision");
 
   then({ svg, ...sizeSVG(container, svg) });
 

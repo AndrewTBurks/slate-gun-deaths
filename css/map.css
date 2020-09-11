@@ -1,0 +1,14 @@
+.map path.state {
+  stroke: var(--background);
+  fill: #fdc08622;
+
+  stroke-width: 0.5px;
+  stroke-linejoin: round;
+
+  transition: fill 250ms ease-out;
+  cursor: pointer;
+}
+
+.map path.state:hover {
+  fill: #fdc086;
+}
