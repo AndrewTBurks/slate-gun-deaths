@@ -5,14 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Slate Gun Deaths Visualization</title>
 
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./favicon-16x16.png"
+    />
+    <link rel="manifest" href="./site.webmanifest" />
+
     <!-- styles -->
     <link rel="stylesheet" href="./css/base.css" />
 
     <!-- libraries -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
   </head>
   <body>
-    <div class="box dp-0">dp-0</div>
+    <div class="content">
+      <div class="header dp-8">Slate Gun Deaths Visualization</div>
+      <div class="map dp-1"></div>
+      <div class="timeline dp-1"></div>
+      <div class="stats dp-1"></div>
+    </div>
+    <!-- <div class="box dp-0">dp-0</div>
     <div class="box dp-1">dp-1</div>
     <div class="box dp-2">dp-2</div>
     <div class="box dp-3">dp-3</div>
@@ -21,6 +47,8 @@
     <div class="box dp-8">dp-8</div>
     <div class="box dp-12">dp-12</div>
     <div class="box dp-16">dp-16</div>
-    <div class="box dp-24">dp-24</div>
+    <div class="box dp-24">dp-24</div> -->
+
+    <script src="./src/main.js" type="module"></script>
   </body>
 </html>
