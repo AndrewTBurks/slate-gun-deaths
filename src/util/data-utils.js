@@ -19,6 +19,8 @@ export function groupBy(cleanData, attrs) {
   for (let d of cleanData) {
     const key = Array.isArray(attrs)
       ? attrs.map((attr) => d[attr]).join("~")
+      : attrs instanceof Function
+      ? attrs(d)
       : d[attrs];
     if (!grouped[key]) grouped[key] = [];
 
