@@ -225,10 +225,10 @@ function showOverlay(state, stateData) {
 
   overlayGroup
     .select(".overlay-container")
-    .selectAll(".state")
+    .selectAll(".selected-state")
     .data([state])
     .join("path")
-    .attr("class", "state")
+    .attr("class", "selected-state")
     .attr("d", d3.geoPath(overlayProjection));
 
   overlayGroup
