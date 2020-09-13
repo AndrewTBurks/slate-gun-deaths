@@ -13,12 +13,12 @@ let nationGroup = null;
 let overlayGroup = null;
 let spikeGroup = null;
 
-const svgWidth = 1000;
+const svgWidth = 1300;
 const svgHeight = 700;
 
 const extent = [
-  [20, 20],
-  [960, 660],
+  [100, 20],
+  [1200, 680],
 ];
 
 export default function render({ svg, width, height }, data, onSelect) {
@@ -60,7 +60,7 @@ export default function render({ svg, width, height }, data, onSelect) {
   }
 
   svg
-    .attr("viewBox", "0 0 1000 700")
+    .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
   getStates().then(({ states, nation }) => {
@@ -183,12 +183,15 @@ function showOverlay(state, stateData) {
     bounds[1][1] - bounds[0][1] + boxMargin * 2,
   ];
 
-  const direction = x + width / 2 > 500 ? "left" : "right";
+  const direction = x + width / 2 > svgWidth / 2 ? "left" : "right";
   const space = [
-    direction === "left"
-      ? x - containerMargin * 2
-      : 1000 - (x + width) - containerMargin * 2,
-    700 - containerMargin * 2,
+    Math.min(
+      svgWidth / 2,
+      direction === "left"
+        ? x - containerMargin * 2
+        : svgWidth - (x + width) - containerMargin * 2
+    ),
+    svgHeight - containerMargin * 2,
   ];
 
   overlayGroup.classed("open", true);
