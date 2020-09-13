@@ -64,8 +64,6 @@ export default function render({ svg, width, height }, data, onSelect) {
     .attr("preserveAspectRatio", "xMidYMid meet");
 
   getStates().then(({ states, nation }) => {
-    console.log(states, nation);
-
     projection.fitExtent(extent, nation[0]);
 
     svg.on("click", (evt) => {
@@ -123,8 +121,6 @@ export default function render({ svg, width, height }, data, onSelect) {
 
         onSelect(isSelected ? d : null);
 
-        console.log(isSelected);
-
         if (isSelected) {
           showOverlay(d, stateByLocation);
 
@@ -171,10 +167,9 @@ export default function render({ svg, width, height }, data, onSelect) {
 
 function showOverlay(state, stateData) {
   const boxMargin = 15;
+  const topInfoMargin = 60;
   const containerMargin = 40;
   const bounds = path.bounds(state);
-
-  console.log(bounds);
 
   const [x, y] = [bounds[0][0] - boxMargin, bounds[0][1] - boxMargin];
 
@@ -220,7 +215,7 @@ function showOverlay(state, stateData) {
 
   const overlayProjection = d3.geoAlbersUsa().fitExtent(
     [
-      [boxMargin, boxMargin],
+      [boxMargin, boxMargin + topInfoMargin],
       [space[0] - 2 * boxMargin, space[1] - 2 * boxMargin],
     ],
     state

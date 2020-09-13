@@ -19,10 +19,10 @@ Promise.all([
   console.log(Object.keys(groupBy(data, ["lat", "lng"])).length);
 
   createSvg(".map", (info) =>
-    renderMap(info, data, (...args) => console.log(args))
+    renderMap(info, data, (...args) => console.log(...args))
   );
   createSvg(".timeline", (info) =>
-    renderTimeline(info, data, (...args) => console.log(args))
+    renderTimeline(info, data, (...args) => console.log(...args))
   );
   createSvg(".stats", console.log);
 });
