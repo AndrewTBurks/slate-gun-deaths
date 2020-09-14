@@ -40,7 +40,7 @@ body {
   gap: 1rem;
   padding: 0 1rem 1rem 1rem;
 
-  grid-template-areas: "header header" "timeline stats " "map stats ";
+  grid-template-areas: "header header" "timeline timeline " "map stats ";
 }
 
 svg text {

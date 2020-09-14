@@ -21,47 +21,60 @@ const extent = [
   [1200, 680],
 ];
 
-export default function render({ svg, width, height }, data, onSelect) {
-  const byState = groupBy(data, "state");
-  const maxCount = d3.max(Object.values(byState), (d) => d.length);
-  const domain = d3.range(0, maxCount, maxCount / 8);
+export function init({ svg, width, height }) {
+  const gradient = svg
+    .append("defs")
+    .append("radialGradient")
+    .attr("id", "dot");
+  gradient
+    .append("stop")
+    .attr("stop-color", "#fb8072")
+    .attr("stop-opacity", 0.75);
+  gradient
+    .append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#999")
+    .attr("stop-opacity", 0);
 
-  const colorScale = d3
-    .scaleSequential(d3.interpolateMagma)
-    .domain([0, maxCount]);
+  nationGroup = svg.append("g").attr("class", "nation-g");
 
-  if (!statesGroup) {
-    nationGroup = svg.append("g").attr("class", "nation-g");
+  statesGroup = svg.append("g").attr("class", "states-g");
+  // .attr("transform", "translate(-40, -40)");
 
-    statesGroup = svg.append("g").attr("class", "states-g");
-    // .attr("transform", "translate(-40, -40)");
+  // .attr("transform", "translate(-40, -40)");
 
-    // .attr("transform", "translate(-40, -40)");
+  overlayGroup = svg.append("g").attr("class", "overlay");
+  overlayGroup
+    .append("rect")
+    .attr("class", "indicator")
+    .style("transform", `translate3d(500px, 350px, 0)`)
+    .attr("width", 0)
+    .attr("height", 0);
 
-    overlayGroup = svg.append("g").attr("class", "overlay");
-    overlayGroup
-      .append("rect")
-      .attr("class", "indicator")
-      .style("transform", `translate3d(500px, 350px, 0)`)
-      .attr("width", 0)
-      .attr("height", 0);
+  overlayGroup
+    .append("g")
+    .attr("class", "overlay-container")
+    .style("transform", `translate3d(500px, 350px, 0)`)
+    .append("rect")
+    .attr("class", "overlay-bg")
+    .attr("width", 0)
+    .attr("height", 0);
 
-    overlayGroup
-      .append("g")
-      .attr("class", "overlay-container")
-      .style("transform", `translate3d(500px, 350px, 0)`)
-      .append("rect")
-      .attr("class", "overlay-bg")
-      .attr("width", 0)
-      .attr("height", 0);
-
-    spikeGroup = overlayGroup.append("g").attr("class", "spike-g");
-    // .attr("transform", "translate(-40, -40)");
-  }
+  spikeGroup = overlayGroup.append("g").attr("class", "spike-g");
+  // .attr("transform", "translate(-40, -40)");
 
   svg
     .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
+}
+
+export default function render({ svg }, data, onSelect) {
+  const byState = groupBy(data, "state");
+  const maxCount = d3.max(Object.values(byState), (d) => d.length);
+
+  const colorScale = d3
+    .scaleSequential(d3.interpolateMagma)
+    .domain([0, maxCount]);
 
   getStates().then(({ states, nation }) => {
     projection.fitExtent(extent, nation[0]);
@@ -130,28 +143,6 @@ export default function render({ svg, width, height }, data, onSelect) {
 
           d3.select(this).lower();
         }
-
-        // spikeGroup
-        //   .selectAll(".spike")
-        //   .data(Object.keys(stateByLocation))
-        //   .join("line")
-        //   .each(function (d) {
-        //     const [lat, lng] = d.split("~").map((d) => +d);
-
-        //     const [x, y] = projection([lng, lat]);
-
-        //     d3.select(this)
-        //       .attr("visibility", "hidden")
-        //       .attr("x1", x)
-        //       .attr("x2", x)
-        //       .attr("y1", y)
-        //       .attr("y2", y)
-        //       .transition()
-        //       .delay(500)
-        //       .attr("visibility", "visible")
-        //       .attr("y2", y - stateByLocation[d].length / 2);
-        //   })
-        //   .attr("class", "spike");
       });
 
     nationGroup
@@ -167,9 +158,14 @@ export default function render({ svg, width, height }, data, onSelect) {
 
 function showOverlay(state, stateData) {
   const boxMargin = 15;
-  const topInfoMargin = 60;
+  const topInfoMargin = 100;
   const containerMargin = 40;
   const bounds = path.bounds(state);
+
+  const circleScale = d3
+    .scaleLinear()
+    .domain([1, d3.max(Object.values(stateData), (d) => d.length)])
+    .range([2, 20]);
 
   const [x, y] = [bounds[0][0] - boxMargin, bounds[0][1] - boxMargin];
 
@@ -189,6 +185,14 @@ function showOverlay(state, stateData) {
     svgHeight - containerMargin * 2,
   ];
 
+  const stateAspect = width / height;
+  const spaceAspect = space[0] / (space[1] - topInfoMargin);
+
+  const [containerWidth, containerHeight] = [
+    spaceAspect > stateAspect ? space[1] * stateAspect : space[0],
+    spaceAspect < stateAspect ? space[0] / stateAspect : space[1],
+  ];
+
   overlayGroup.classed("open", true);
 
   overlayGroup
@@ -203,20 +207,22 @@ function showOverlay(state, stateData) {
     .style(
       "transform",
       `translate3d(${
-        direction === "left" ? containerMargin : x + width + containerMargin
-      }px, ${containerMargin}px, 0)`
+        direction === "left"
+          ? x - containerMargin - containerWidth
+          : x + width + containerMargin
+      }px, ${containerMargin + (space[1] - containerHeight) / 2}px, 0)`
     );
 
   overlayGroup
     .select(".overlay-bg")
     .style("opacity", 1)
-    .attr("width", space[0])
-    .attr("height", space[1]);
+    .attr("width", containerWidth)
+    .attr("height", containerHeight);
 
   const overlayProjection = d3.geoAlbersUsa().fitExtent(
     [
       [boxMargin, boxMargin + topInfoMargin],
-      [space[0] - 2 * boxMargin, space[1] - 2 * boxMargin],
+      [containerWidth - 2 * boxMargin, containerHeight - 2 * boxMargin],
     ],
     state
   );
@@ -229,26 +235,26 @@ function showOverlay(state, stateData) {
     .attr("class", "selected-state")
     .attr("d", d3.geoPath(overlayProjection));
 
+  overlayGroup.select(".overlay-container");
+
   overlayGroup
     .select(".overlay-container")
     .selectAll(".spike")
     .data(Object.keys(stateData))
-    .join("line")
+    .join("g")
     .each(function (d) {
       const [lat, lng] = d.split("~").map((d) => +d);
 
       const [x, y] = overlayProjection([lng, lat]);
 
       d3.select(this)
-        .attr("visibility", "hidden")
-        .attr("x1", x)
-        .attr("x2", x)
-        .attr("y1", y)
-        .attr("y2", y)
-        .transition()
-        .delay(500)
-        .attr("visibility", "visible")
-        .attr("y2", y - stateData[d].length / 2);
+        .selectAll("circle")
+        .data([circleScale(stateData[d].length), 1])
+        .join("circle")
+        .attr("cx", x)
+        .attr("cy", y)
+        .attr("r", (d) => d)
+        .style("fill", (d, i) => ["url(#dot)", "#fb8072"][i]);
     })
     .attr("class", "spike");
 }
@@ -258,45 +264,25 @@ function hideOverlay() {
 
   overlayGroup
     .select(".indicator")
-    // .style("transform", function () {
-    //   const el = d3.select(this);
-    //   console.log(d3.select(this).style("transform"));
-    //   const [
-    //     string,
-    //     x,
-    //     y,
-    //   ] = /translate3d\(([\d\.]*)px,\s*([\d\.]*)px,\s*[\d\.]*px\)/.exec(
-    //     d3.select(this).style("transform")
-    //   );
+    .style("transform", function () {
+      const el = d3.select(this);
+      console.log(d3.select(this).style("transform"));
+      const [
+        string,
+        x,
+        y,
+      ] = /translate3d\(([\d\.]*)px,\s*([\d\.]*)px,\s*[\d\.]*px\)/.exec(
+        d3.select(this).style("transform")
+      );
 
-    //   const [width, height] = [el.attr("width"), el.attr("height")];
+      const [width, height] = [el.attr("width"), el.attr("height")];
 
-    //   return `translate3d(${+x + +width / 2}px, ${+y + +height / 2}px, 0)`;
-    // })
+      return `translate3d(${+x + +width / 2}px, ${+y + +height / 2}px, 0)`;
+    })
     .attr("width", 0)
     .attr("height", 0);
 
-  overlayGroup
-    .select(".overlay-bg")
-    // .style("transform", function () {
-    //   const el = d3.select(this);
-    //   console.log(d3.select(this).style("transform"));
-    //   const [
-    //     string,
-    //     x,
-    //     y,
-    //   ] = /translate3d\(([\d\.]*)px,\s*([\d\.]*)px,\s*[\d\.]*px\)/.exec(
-    //     d3.select(this).style("transform")
-    //   );
-
-    //   const [width, height] = [el.attr("width"), el.attr("height")];
-
-    //   console.log(x, y, width, height);
-
-    //   return `translate3d(${+x + +width / 2}px, ${+y + +height / 2}px, 0)`;
-    // })
-    .attr("width", 0)
-    .attr("height", 0);
+  overlayGroup.select(".overlay-container");
 }
 
 function updateStatesAndNation(colorScale, byState) {

@@ -1,4 +1,4 @@
-import renderMap from "./map.js";
+import renderMap, { init as initMap } from "./map.js";
 import renderTimeline from "./timeline.js";
 import createSvg from "./util/create-svg.js";
 import { groupBy, cleanEntry, cleanData } from "./util/data-utils.js";
@@ -18,11 +18,12 @@ Promise.all([
   console.log(groupBy(data, "state"));
   console.log(Object.keys(groupBy(data, ["lat", "lng"])).length);
 
-  createSvg(".map", (info) =>
+  createSvg(".map", initMap, (info) =>
     renderMap(info, data, (...args) => console.log(...args))
   );
-  createSvg(".timeline", (info) =>
+
+  createSvg(".timeline", undefined, (info) =>
     renderTimeline(info, data, (...args) => console.log(...args))
   );
-  createSvg(".stats", console.log);
+  createSvg(".stats", undefined, console.log);
 });

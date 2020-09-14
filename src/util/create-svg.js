@@ -7,7 +7,7 @@ window.onresize = function () {
   timeout && clearTimeout(timeout);
   timeout = this.setTimeout(() => {
     SVGS.forEach(({ container, svg, then }) => {
-      then({ svg, ...sizeSVG(container, svg) });
+      then && then({ svg, ...sizeSVG(container, svg) });
     });
 
     timeout = null;
@@ -22,14 +22,15 @@ function sizeSVG(container, svg) {
   return { width, height };
 }
 
-export default function createSvg(elem, then) {
+export default function createSvg(elem, init, then) {
   const container = d3.select(elem);
 
   const svg = container
     .append("svg")
     .attr("shape-rendering", "geometricPrecision");
 
-  then({ svg, ...sizeSVG(container, svg) });
+  init && init({ svg, ...sizeSVG(container, svg) });
+  then && then({ svg, ...sizeSVG(container, svg) });
 
   SVGS.push({ container, svg, then });
 }

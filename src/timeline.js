@@ -12,7 +12,7 @@ export default function render({ svg, width, height }, data, onSelect) {
   console.log(byDay);
 
   const chartWidth = width - MARGIN.left - MARGIN.right;
-  const barWidth = chartWidth / Object.keys(byDay).length - 1;
+  const barWidth = chartWidth / Object.keys(byDay).length - 2;
 
   const xScale = d3
     .scaleTime()
@@ -23,6 +23,21 @@ export default function render({ svg, width, height }, data, onSelect) {
     ]);
 
   const xAxis = d3.axisBottom(xScale);
+
+  const brush = d3
+    .brushX(xAxis)
+    .extent([
+      [MARGIN.left, MARGIN.top],
+      [width - MARGIN.right, height - MARGIN.bottom],
+    ])
+    .on("brush", ({ selection }) => {
+      const dateRange = selection && selection.map(xScale.invert);
+      updateBars(svg, dateRange);
+    })
+    .on("end", ({ selection }) => {
+      const dateRange = selection && selection.map(xScale.invert);
+      updateBars(svg, dateRange);
+    });
 
   const yScale = d3
     .scaleLinear()
@@ -37,13 +52,16 @@ export default function render({ svg, width, height }, data, onSelect) {
 
   svg
     .selectAll(".date-bar")
-    .data(Object.keys(byDay))
+    .data(Object.values(byDay))
     .join("rect")
-    .attr("x", (d) => xScale(byDay[d][0].date) - barWidth / 2)
+    .attr("class", "date-bar")
+    .attr("x", (d) => xScale(d[0].date) - barWidth / 2)
     .attr("width", barWidth)
-    .attr("y", (d) => yScale(byDay[d].length))
-    .attr("height", (d) => height - MARGIN.bottom - yScale(byDay[d].length))
+    .attr("y", (d) => yScale(d.length))
+    .attr("height", (d) => height - MARGIN.bottom - yScale(d.length))
     .style("fill", "#444");
+
+  updateBars(svg, null);
 
   svg
     .append("g")
@@ -58,4 +76,22 @@ export default function render({ svg, width, height }, data, onSelect) {
     .style("color", "#aaa")
     .style("transform", `translate3d(${MARGIN.left}px, 0, 0)`)
     .call(yAxis);
+
+  svg.append("g").attr("class", "x-brush").style("color", "#aaa").call(brush);
+}
+
+function updateBars(svg, dateRange) {
+  svg.selectAll(".date-bar").style("fill", (d) => {
+    const date = d[0].date;
+
+    if (
+      !dateRange ||
+      (date.getTime() > dateRange[0].getTime() &&
+        date.getTime() < dateRange[1].getTime())
+    ) {
+      return "#fbb4ae";
+    } else {
+      return "#444";
+    }
+  });
 }
