@@ -188,7 +188,7 @@ export default class DetailsView extends BaseView {
           } else {
             hideOverlay();
 
-            d3.select(this).lower();
+            // d3.select(this).lower();
           }
         });
 
