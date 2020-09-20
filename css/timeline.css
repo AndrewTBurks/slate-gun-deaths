@@ -1,0 +1,27 @@
+.timeline .x-brush .selection {
+  stroke: none;
+}
+
+.timeline .x-brush .handle {
+  fill: #fff8;
+  width: 4px;
+
+  rx: 2px;
+}
+
+.timeline .x-brush .handle--w {
+  transform: translateX(-2px);
+}
+
+.timeline .x-brush .handle--e {
+  transform: translateX(2px);
+}
+
+.timeline .date-label rect {
+  fill: #ffffff12;
+}
+
+.timeline .date-label text {
+  text-anchor: middle;
+  font-size: 12px;
+}

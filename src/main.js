@@ -1,29 +1,49 @@
-import renderMap, { init as initMap } from "./map.js";
-import renderTimeline from "./timeline.js";
-import createSvg from "./util/create-svg.js";
-import { groupBy, cleanEntry, cleanData } from "./util/data-utils.js";
+import MapClass from "./map.js";
+import Timeline from "./timeline.js";
+import Details from "./details.js";
+import createSvg, { createView } from "./util/create-svg.js";
+import { groupBy, countBy, cleanData } from "./util/data-utils.js";
 
 Promise.all([
   d3.csv("./data/SlateGunDeaths.csv"),
   d3.csv("./data/states.csv"),
 ]).then(([raw, abbrev]) => {
-  const data = cleanData(
+  const allData = cleanData(
     raw,
     Object.fromEntries(
       abbrev.map(({ State, Abbreviation }) => [Abbreviation, State])
     )
   );
 
-  console.log(data);
-  console.log(groupBy(data, "state"));
-  console.log(Object.keys(groupBy(data, ["lat", "lng"])).length);
+  let data = { current: allData };
 
-  createSvg(".map", initMap, (info) =>
-    renderMap(info, data, (...args) => console.log(...args))
-  );
+  console.log(data.current);
+  console.log(groupBy(data.current, "state"));
+  console.log(countBy(data.current, ["lat", "lng"]));
 
-  createSvg(".timeline", undefined, (info) =>
-    renderTimeline(info, data, (...args) => console.log(...args))
-  );
-  createSvg(".stats", undefined, console.log);
+  const onSelectTime = (dateRange) => {
+    console.log(dateRange);
+  };
+
+  const onSelectState = (state) => {
+    console.log(state);
+  };
+
+  const mapView = createView(".map", MapClass, () => data.current);
+  const timelineView = createView(".timeline", Timeline, () => allData);
+  const statsView = createView(".stats", Details, () => data.current);
+
+  timelineView.onSelect((dateRange) => {
+    if (dateRange === null) {
+      data.current = allData;
+    } else {
+      data.current = allData.filter(
+        (d) =>
+          d.date.getTime() > dateRange[0].getTime() &&
+          d.date.getTime() < dateRange[1].getTime()
+      );
+    }
+
+    mapView.render();
+  });
 });

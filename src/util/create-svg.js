@@ -34,3 +34,29 @@ export default function createSvg(elem, init, then) {
 
   SVGS.push({ container, svg, then });
 }
+
+export function createView(elem, viewClass, dataGetter) {
+  const container = d3.select(elem);
+
+  const svg = container
+    .append("svg")
+    .attr("shape-rendering", "geometricPrecision");
+
+  const size = sizeSVG(container, svg);
+
+  const view = new viewClass({ svg, ...size });
+  view.init();
+  view.updateDataFunc(dataGetter);
+  view.render();
+
+  SVGS.push({
+    container,
+    svg,
+    then: ({ svg, width, height }) => {
+      view.onResize({ width, height });
+      view.render();
+    },
+  });
+
+  return view;
+}

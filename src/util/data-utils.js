@@ -13,6 +13,23 @@ export function cleanData(rawData, abbrev) {
   return rawData.map((row) => cleanEntry(row, abbrev));
 }
 
+export function countBy(cleanData, attrs) {
+  const counts = {};
+
+  for (let d of cleanData) {
+    const key = Array.isArray(attrs)
+      ? attrs.map((attr) => d[attr]).join("~")
+      : attrs instanceof Function
+      ? attrs(d)
+      : d[attrs];
+    if (!counts[key]) counts[key] = 0;
+
+    counts[key]++;
+  }
+
+  return counts;
+}
+
 export function groupBy(cleanData, attrs) {
   const grouped = {};
 
