@@ -25,7 +25,6 @@ export default class DetailsView extends BaseView {
   spikeGroup = null;
 
   init() {
-    const { svg, width, height } = this;
     const defs = this.svg.append("defs");
 
     const gradient = defs.append("radialGradient").attr("id", "dot");
@@ -113,8 +112,9 @@ export default class DetailsView extends BaseView {
   render() {
     const { svg, statesGroup, nationGroup, overlayGroup, spikeGroup } = this;
 
+    const self = this;
+
     const data = this.getData();
-    const _onSelect = this._onSelect;
     const updateStatesAndNation = this.updateStatesAndNation.bind(this);
     const showOverlay = this.showOverlay.bind(this);
     const hideOverlay = this.hideOverlay.bind(this);
@@ -133,6 +133,8 @@ export default class DetailsView extends BaseView {
         evt.preventDefault();
 
         hideOverlay();
+
+        self._onSelect(null);
 
         // projection.fitExtent(extent, nation[0]);
         // spikeGroup.selectAll(".spike").attr("visibility", "hidden");
@@ -179,7 +181,7 @@ export default class DetailsView extends BaseView {
 
           d3.select(this).classed("selected", isSelected);
 
-          _onSelect(isSelected ? d : null);
+          self._onSelect(isSelected ? d : null);
 
           if (isSelected) {
             showOverlay(d, byState[d.properties.name]);
@@ -209,6 +211,7 @@ export default class DetailsView extends BaseView {
           showOverlay(selectedState, stateData);
         } else {
           selectedEl.classed("selected", false);
+          this._onSelect(null);
           hideOverlay();
         }
       }
@@ -224,10 +227,6 @@ export default class DetailsView extends BaseView {
     const topCity = Object.values(stateData).sort(
       (a, b) => b.length - a.length
     )[0];
-
-    console.log(state.properties.name);
-    console.log("AGE", byAgeGroup);
-    console.log("GENDER", byGender);
 
     const boxMargin = 15;
     const topInfoMargin = 100;
@@ -249,7 +248,7 @@ export default class DetailsView extends BaseView {
     const direction = x + width / 2 > svgWidth / 2 ? "left" : "right";
     const space = [
       Math.min(
-        svgWidth / 2,
+        svgWidth / 2 - containerMargin * 2,
         direction === "left"
           ? x - containerMargin * 2
           : svgWidth - (x + width) - containerMargin * 2
@@ -345,7 +344,6 @@ export default class DetailsView extends BaseView {
       .select(".indicator")
       .style("transform", function () {
         const el = d3.select(this);
-        console.log(d3.select(this).style("transform"));
         const [
           string,
           x,

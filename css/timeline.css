@@ -25,3 +25,8 @@
   text-anchor: middle;
   font-size: 12px;
 }
+
+.timeline .x-axis,
+.timeline .y-axis {
+  color: #a0aec0;
+}

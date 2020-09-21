@@ -15,8 +15,8 @@ window.onresize = function () {
 };
 
 function sizeSVG(container, svg) {
-  const width = container.node().clientWidth - CONTAINER_PADDING;
-  const height = container.node().clientHeight - CONTAINER_PADDING;
+  const width = container.node().clientWidth - CONTAINER_PADDING * 2;
+  const height = container.node().clientHeight - CONTAINER_PADDING * 2;
   svg.attr("width", width).attr("height", height);
 
   return { width, height };

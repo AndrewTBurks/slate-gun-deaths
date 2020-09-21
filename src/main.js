@@ -2,7 +2,13 @@ import MapClass from "./map.js";
 import Timeline from "./timeline.js";
 import Details from "./details.js";
 import createSvg, { createView } from "./util/create-svg.js";
-import { groupBy, countBy, cleanData } from "./util/data-utils.js";
+import {
+  groupBy,
+  countBy,
+  cleanData,
+  filterByDateRange,
+  filterByState,
+} from "./util/data-utils.js";
 
 Promise.all([
   d3.csv("./data/SlateGunDeaths.csv"),
@@ -16,34 +22,55 @@ Promise.all([
   );
 
   let data = { current: allData };
+  let state = { current: null };
+  let stateData = { current: null };
 
-  console.log(data.current);
-  console.log(groupBy(data.current, "state"));
-  console.log(countBy(data.current, ["lat", "lng"]));
+  const ageGrouped = groupBy(data.current, "ageGroup");
 
-  const onSelectTime = (dateRange) => {
-    console.log(dateRange);
-  };
-
-  const onSelectState = (state) => {
-    console.log(state);
-  };
+  console.log(ageGrouped);
+  console.log(
+    Object.fromEntries(
+      Object.keys(ageGrouped).map((g) => [
+        g,
+        d3.extent(ageGrouped[g], (d) => d.age),
+      ])
+    )
+  );
 
   const mapView = createView(".map", MapClass, () => data.current);
   const timelineView = createView(".timeline", Timeline, () => allData);
-  const statsView = createView(".stats", Details, () => data.current);
+  const statsView = createView(".stats", Details, () => ({
+    all: allData,
+    time: data.current,
+    state: stateData.current,
+  }));
 
   timelineView.onSelect((dateRange) => {
     if (dateRange === null) {
       data.current = allData;
     } else {
-      data.current = allData.filter(
-        (d) =>
-          d.date.getTime() > dateRange[0].getTime() &&
-          d.date.getTime() < dateRange[1].getTime()
-      );
+      data.current = filterByDateRange(allData, dateRange);
+    }
+
+    if (state.current) {
+      stateData.current = filterByState(data.current, state.current);
     }
 
     mapView.render();
+    statsView.render();
+  });
+
+  mapView.onSelect((selectedState) => {
+    if (selectedState) {
+      if (selectedState.properties.name !== state.current) {
+        state.current = selectedState.properties.name;
+        stateData.current = filterByState(data.current, state.current);
+      }
+    } else {
+      state.current = null;
+      stateData.current = null;
+    }
+
+    statsView.render();
   });
 });

@@ -3,13 +3,24 @@ import { groupBy } from "./util/data-utils.js";
 
 const MARGIN = {
   left: 30,
-  top: 40,
-  bottom: 30,
+  top: 48,
+  bottom: 20,
   right: 15,
 };
 
 export default class TimelineView extends BaseView {
   _onSelect = (dateRange) => {};
+
+  init() {
+    this.svg
+      .append("text")
+      .attr("class", "view-title")
+      .attr("x", 0)
+      .attr("y", 24)
+      .text("Deaths Over Time");
+
+    this.chart = this.svg.append("g");
+  }
 
   render() {
     const { svg, width, height } = this;
@@ -24,12 +35,15 @@ export default class TimelineView extends BaseView {
     const xScale = d3
       .scaleTime()
       .domain(d3.extent(Object.keys(byDay).map((d) => new Date(d))))
-      .range([
-        MARGIN.left + barWidth / 2 + 2,
-        width - MARGIN.right - barWidth / 2 - 2,
-      ]);
+      .range([MARGIN.left, width - MARGIN.right]);
 
     const xAxis = d3.axisBottom(xScale);
+
+    const line = d3
+      .line()
+      .curve(d3.curveMonotoneX)
+      .x((d) => xScale(d[0].date))
+      .y((d) => yScale(d.length));
 
     const brush = d3
       .brushX(xAxis)
@@ -48,7 +62,10 @@ export default class TimelineView extends BaseView {
             .select("#date-start")
             .style(
               "transform",
-              `translate3d(${Math.max(selection[0], 80)}px, ${MARGIN.top}px, 0)`
+              `translate3d(${Math.min(
+                Math.max(selection[0], 80),
+                width - 85
+              )}px, ${MARGIN.top}px, 0)`
             )
             .select("text")
             .text(dateRange[0].toLocaleDateString());
@@ -57,9 +74,10 @@ export default class TimelineView extends BaseView {
             .select("#date-end")
             .style(
               "transform",
-              `translate3d(${Math.min(selection[1], width - 80)}px, ${
-                MARGIN.top
-              }px, 0)`
+              `translate3d(${Math.max(
+                Math.min(selection[1], width - 80),
+                85
+              )}px, ${MARGIN.top}px, 0)`
             )
             .select("text")
             .text(dateRange[1].toLocaleDateString());
@@ -84,41 +102,53 @@ export default class TimelineView extends BaseView {
 
     const yAxis = d3.axisLeft(yScale).ticks(5);
 
-    svg.selectAll("*").remove();
+    this.chart.selectAll("*").remove();
 
-    svg.attr("shape-rendering", "geometricPrecision");
+    this.chart.attr("shape-rendering", "geometricPrecision");
 
-    svg
+    this.chart
+      .append("path")
+      .attr("class", "death-line")
+      .datum(Object.values(byDay))
+      .attr("d", line)
+      .attr("fill", "none")
+      .attr("stroke", "#FEB2B2")
+      .attr("stroke-width", 0.5);
+
+    this.chart
       .selectAll(".date-bar")
       .data(Object.values(byDay))
-      .join("rect")
+      .join("circle")
       .attr("class", "date-bar")
-      .attr("x", (d) => xScale(d[0].date) - barWidth / 2)
-      .attr("width", barWidth)
-      .attr("y", (d) => yScale(d.length))
-      .attr("height", (d) => height - MARGIN.bottom - yScale(d.length))
+      .attr("cx", (d) => xScale(d[0].date))
+      // .attr("width", barWidth)
+      .attr("cy", (d) => yScale(d.length))
+      // .attr("height", (d) => height - MARGIN.bottom - yScale(d.length))
+      .attr("r", 1.5)
       .style("fill", "#FED7D7");
 
     updateBars(null);
     this._onSelect(null);
 
-    svg
+    this.chart
       .append("g")
       .attr("class", "x-axis")
-      .style("color", "#aaa")
       .style("transform", `translate3d(0, ${height - MARGIN.bottom}px, 0)`)
       .call(xAxis);
 
-    svg
+    this.chart
       .append("g")
       .attr("class", "y-axis")
-      .style("color", "#aaa")
       .style("transform", `translate3d(${MARGIN.left}px, 0, 0)`)
       .call(yAxis);
 
-    svg.append("g").attr("class", "x-brush").style("color", "#aaa").call(brush);
+    this.chart
+      .append("g")
+      .attr("class", "x-brush")
+      .style("color", "#aaa")
+      .call(brush);
 
-    const startLabel = svg
+    const startLabel = this.chart
       .append("g")
       .attr("class", "date-label")
       .attr("id", "date-start");
@@ -133,7 +163,7 @@ export default class TimelineView extends BaseView {
 
     startLabel.append("text").attr("x", -40).attr("y", -5).text("startLabel");
 
-    const endLabel = svg
+    const endLabel = this.chart
       .append("g")
       .attr("class", "date-label")
       .attr("id", "date-end");
@@ -149,19 +179,23 @@ export default class TimelineView extends BaseView {
   }
 
   updateBars(dateRange) {
-    this.svg.selectAll(".date-bar").style("fill", (d) => {
+    this.svg
+      .select(".death-line")
+      .attr("stroke", dateRange ? "#4A5568" : "#FED7D7");
+
+    this.svg.selectAll(".date-bar").each(function (d) {
       const date = d[0].date;
 
-      if (!dateRange) {
-        return "#FEB2B2";
-      } else if (
-        date.getTime() > dateRange[0].getTime() &&
-        date.getTime() < dateRange[1].getTime()
-      ) {
-        return "#FC8181";
-      } else {
-        return "#A0AEC0";
-      }
+      const withinRange =
+        dateRange &&
+        date.getTime() >= dateRange[0].getTime() &&
+        date.getTime() <= dateRange[1].getTime();
+
+      const fill = !dateRange ? "#FEB2B2" : withinRange ? "#FC8181" : "#4A5568";
+
+      const r = !dateRange ? 1.25 : withinRange ? 2.25 : 0.75;
+
+      d3.select(this).style("fill", fill);
     });
   }
 

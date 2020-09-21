@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="./css/base.css" />
     <link rel="stylesheet" href="./css/map.css" />
     <link rel="stylesheet" href="./css/timeline.css" />
+    <link rel="stylesheet" href="./css/details.css" />
 
     <!-- libraries -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -36,7 +37,14 @@
   <body>
     <div class="content">
       <div class="header dp-8">Slate Gun Deaths Visualization</div>
-      <div class="map dp-1"></div>
+      <div class="map dp-1" style="position: relative">
+        <div
+          class="view-title"
+          style="position: absolute; left: 16px; top: 20px"
+        >
+          Deaths by State
+        </div>
+      </div>
       <div class="timeline dp-1"></div>
       <div class="stats dp-1"></div>
     </div>
