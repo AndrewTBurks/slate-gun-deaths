@@ -5,7 +5,7 @@ const charts = {
   "Age Group": {
     counter: "ageGroup",
     domain: [0, 1, 2, 3],
-    keyMap: ["Unknown", "Child", "Teen", "Adult"],
+    keyMap: ["Unknown", "Child (0-12)", "Teen (13-17)", "Adult (18+)"],
   },
   Gender: {
     counter: "gender",

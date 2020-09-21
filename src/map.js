@@ -308,7 +308,7 @@ export default class DetailsView extends BaseView {
 
     overlayGroup
       .select(".overlay-container .overlay-title")
-      .text(state.properties.name);
+      .text(`${state.properties.name} - ${allStateData.length} Deaths`);
 
     overlayGroup
       .select(".overlay-container .overlay-caption")
