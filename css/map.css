@@ -87,7 +87,7 @@
   /* fill: #000; */
 
   font-family: var(--font-serif);
-  font-size: 28px;
+  font-size: 24px;
 
   font-weight: 600;
 }
@@ -98,4 +98,17 @@
   font-size: 16px;
 
   font-weight: 300;
+}
+
+.map select {
+  border-radius: 8px;
+  border: 1px solid #fff3;
+  background: #fff1;
+  color: white;
+  padding: 2px 4px;
+}
+
+.map option {
+  background: var(--background);
+  padding: 2px 4px;
 }

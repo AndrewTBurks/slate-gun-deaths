@@ -21,6 +21,12 @@ export function cleanData(rawData, abbrev) {
 export function countBy(cleanData, attrs) {
   const counts = {};
 
+  Object.defineProperty(counts, "__total__", {
+    enumerable: false,
+    writable: true,
+  });
+  counts.__total__ = 0;
+
   for (let d of cleanData) {
     const key = Array.isArray(attrs)
       ? attrs.map((attr) => d[attr]).join("~")
@@ -30,6 +36,7 @@ export function countBy(cleanData, attrs) {
     if (!counts[key]) counts[key] = 0;
 
     counts[key]++;
+    counts.__total__++;
   }
 
   return counts;

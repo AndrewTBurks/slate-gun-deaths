@@ -42,7 +42,22 @@
           class="view-title"
           style="position: absolute; left: 16px; top: 20px"
         >
-          Deaths by State
+          Deaths by State during Time Window
+          <div
+            style="
+              margin-left: 10px;
+              font-family: var(--font);
+              font-size: 16px;
+              font-weight: 300;
+            "
+          >
+            Color by:
+            <select className="dp-8">
+              <option value="count">Count</option>
+              <option value="gender">Gender</option>
+              <option value="age">Age</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="timeline dp-1"></div>

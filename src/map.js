@@ -16,6 +16,50 @@ const extent = [
   [1200, 680],
 ];
 
+let currentScale = "count";
+
+const scales = {
+  count(data) {
+    return d3
+      .scaleSequential(d3.interpolateMagma)
+      .domain([0, d3.max(Object.values(data), (d) => d.length)]);
+  },
+  gender(data) {
+    return d3
+      .scaleSequential(
+        d3.piecewise(d3.interpolateLab, [
+          "#F687B3",
+          "#FBB6CE",
+          "#FED7E2",
+          "#FFF5F7",
+          "#ffffff",
+          "#EBF4FF",
+          "#C3DAFE",
+          "#A3BFFA",
+          "#7F9CF5",
+        ])
+      )
+      .domain([0, 1]);
+  },
+  age(data) {
+    return d3.scaleSequential(d3.interpolateGnBu).domain([0, 100]);
+  },
+};
+
+const getScaleInput = {
+  count(data) {
+    return data.length;
+  },
+  gender(data) {
+    const count = countBy(data, "gender");
+
+    return (count.M ?? 0) / count.__total__;
+  },
+  age(data) {
+    return d3.mean(data, (d) => d.age);
+  },
+};
+
 export default class DetailsView extends BaseView {
   _onSelect = () => null;
   statesGroup = null;
@@ -36,6 +80,20 @@ export default class DetailsView extends BaseView {
       .append("stop")
       .attr("offset", "100%")
       .attr("stop-color", "#999")
+      .attr("stop-opacity", 0);
+
+    const sparklineGradient = defs
+      .append("linearGradient")
+      .attr("id", "sparkline-fill")
+      .attr("gradientTransform", "rotate(90)");
+    sparklineGradient
+      .append("stop")
+      .attr("stop-color", "#E53E3E")
+      .attr("stop-opacity", 0.75);
+    sparklineGradient
+      .append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", "#FEB2B2")
       .attr("stop-opacity", 0);
 
     const hatched = defs
@@ -100,9 +158,183 @@ export default class DetailsView extends BaseView {
     this.spikeGroup = this.overlayGroup.append("g").attr("class", "spike-g");
     // .attr("transform", "translate(-40, -40)");
 
+    container
+      .append("g")
+      .style("transform", "translate3d(14px, 70px, 0)")
+      .each(function () {
+        // d3.select(this)
+        //   .append("rect")
+        //   .classed("bg-rect", true)
+        //   .attr("stroke", "white")
+        //   .attr("width", 0)
+        //   .attr("height", 24)
+        //   .attr("y", 0);
+
+        d3.select(this)
+          .append("text")
+          .attr("x", 40)
+          .style("text-anchor", "middle")
+          .attr("y", 18)
+          .attr("font-size", 14)
+          .attr("font-weight", 300)
+          .text("Gender");
+
+        d3.select(this)
+          .append("g")
+          .attr("class", ".gender-bars-g")
+          .style("transform", "translate(125px, 0)")
+          .each(function () {
+            d3.select(this)
+              .append("rect")
+              .attr("class", "gender-bar-m")
+              .attr("width", 75)
+              .attr("height", 16)
+              .attr("y", 4)
+              .attr("fill", "#90CDF4");
+            d3.select(this)
+              .append("rect")
+              .attr("class", "gender-bar-f")
+              .attr("width", 75)
+              .attr("x", 75)
+              .attr("height", 16)
+              .attr("y", 4)
+              .attr("fill", "#FBB6CE");
+
+            d3.select(this)
+              .append("text")
+              .attr("class", "gender-label-m")
+              .attr("font-size", 12)
+              .style("fill", "#a0aec0")
+              .attr("x", -4)
+              .attr("y", 16)
+              .attr("text-anchor", "end")
+              .text("50% M");
+
+            d3.select(this)
+              .append("text")
+              .attr("class", "gender-label-f")
+              .attr("font-size", 12)
+              .style("fill", "#a0aec0")
+              .attr("y", 16)
+              .attr("x", 154)
+              .text("50% F");
+          });
+      })
+      .classed("gender-chart", true);
+
+    container
+      .append("g")
+      .style("transform", "translate3d(14px, 102px, 0)")
+      .each(function () {
+        d3.select(this)
+          .append("text")
+          .attr("x", 40)
+          .style("text-anchor", "middle")
+          .attr("y", 18)
+          .attr("font-size", 14)
+          .attr("font-weight", 300)
+          .text("Age");
+
+        d3.select(this)
+          .append("g")
+          .attr("class", ".age-chart-g")
+          .style("transform", "translate(125px, 0)")
+          .each(function (d) {
+            // .append("rect")
+            // .classed("age-bars-bg", true)
+            // .attr("stroke", "white")
+            // .attr("width", 150)
+            // .attr("height", 24)
+            // .attr("y", 0);
+
+            // d3.select(this)
+            //   .append("line")
+            //   .classed("age-y-axis", true)
+            //   .attr("stroke", "#a0aec0")
+            //   .attr("stroke-width", 0.5)
+            //   .attr("x1", 0)
+            //   .attr("x1", 0)
+            //   .attr("y1", 0)
+            //   .attr("y2", 24);
+
+            d3.select(this)
+              .append("text")
+              .classed("age-scale-0", true)
+              .style("fill", "#a0aec0")
+              .attr("text-anchor", "end")
+              .attr("font-size", 12)
+              .attr("x", -4)
+              .attr("y", 24)
+              .text("0");
+
+            d3.select(this)
+              .append("text")
+              .classed("age-max-y", true)
+              .style("fill", "#a0aec0")
+              .attr("text-anchor", "end")
+              .attr("font-size", 12)
+              .attr("x", -4)
+              .attr("y", 8)
+              .text("100");
+
+            d3.select(this)
+              .append("text")
+              .classed("age-max-x", true)
+              .style("fill", "#a0aec0")
+              .attr("text-anchor", "start")
+              .attr("font-size", 12)
+              .attr("x", 154)
+              .attr("y", 24)
+              .text("100");
+
+            d3.select(this)
+              .append("path")
+              .attr("class", "sparkline")
+              .attr("stroke", "#F56565")
+              .attr("stroke-width", 0.5)
+              .attr("fill", "url(#sparkline-fill)");
+
+            d3.select(this)
+              .append("line")
+              .classed("age-x-axis", true)
+              .attr("stroke", "#a0aec0")
+              .attr("stroke-width", 1)
+              .attr("x1", 0)
+              .attr("x1", 150)
+              .attr("y1", 24)
+              .attr("y2", 24);
+          });
+      })
+      .classed("age-chart", true);
+
     this.svg
       .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
+
+    this.legendG = this.svg.append("g");
+
+    d3.select(".map select").on("change", (e) => {
+      currentScale = e.target.value;
+
+      this.render();
+    });
+
+    this.legendG
+      .append("rect")
+      .attr("width", 160)
+      .attr("height", 240)
+      .attr("fill", "var(--background)")
+      .attr("fill-opacity", 0.5)
+      .attr("rx", 12);
+
+    this.legendG
+      .append("text")
+      .attr("x", 80)
+      .attr("y", 22)
+      .attr("text-anchor", "middle")
+      .text("Legend")
+      .attr("font-size", 18)
+      .attr("font-weight", 300);
   }
 
   onSelect(listener) {
@@ -120,11 +352,8 @@ export default class DetailsView extends BaseView {
     const hideOverlay = this.hideOverlay.bind(this);
 
     const byState = groupBy(data, "state");
-    const maxCount = d3.max(Object.values(byState), (d) => d.length);
 
-    const colorScale = d3
-      .scaleSequential(d3.interpolateMagma)
-      .domain([0, maxCount]);
+    const colorScale = scales[currentScale](byState);
 
     getStates().then(({ states, nation }) => {
       projection.fitExtent(extent, nation[0]);
@@ -153,13 +382,18 @@ export default class DetailsView extends BaseView {
             .map((coord) => `${coord}px`)
             .join(" ")
         )
-        .style("fill", (d) =>
-          !byState[d.properties.name] || byState[d.properties.name].length === 0
-            ? "url(#diag-hatch)"
-            : colorScale(
-                byState[d.properties.name] && byState[d.properties.name].length
-              )
-        )
+        .style("fill", (d) => {
+          if (
+            !byState[d.properties.name] ||
+            byState[d.properties.name].length === 0
+          ) {
+            return "url(#diag-hatch)";
+          } else {
+            return colorScale(
+              getScaleInput[currentScale](byState[d.properties.name])
+            );
+          }
+        })
         .style("pointer-events", (d) =>
           !byState[d.properties.name] || byState[d.properties.name].length === 0
             ? "none"
@@ -221,7 +455,7 @@ export default class DetailsView extends BaseView {
   showOverlay(state, allStateData) {
     const { overlayGroup } = this;
     const stateData = groupBy(allStateData, ["lat", "lng"]);
-    const byAgeGroup = countBy(allStateData, "ageGroup");
+    const byAge = countBy(allStateData, "age");
     const byGender = countBy(allStateData, "gender");
 
     const topCity = Object.values(stateData).sort(
@@ -229,8 +463,9 @@ export default class DetailsView extends BaseView {
     )[0];
 
     const boxMargin = 15;
-    const topInfoMargin = 100;
+    const topInfoMargin = 128;
     const containerMargin = 40;
+    const leftMargin = 180;
     const bounds = path.bounds(state);
 
     const circleScale = d3
@@ -245,15 +480,18 @@ export default class DetailsView extends BaseView {
       bounds[1][1] - bounds[0][1] + boxMargin * 2,
     ];
 
-    const direction = x + width / 2 > svgWidth / 2 ? "left" : "right";
+    const direction =
+      x + width / 2 > (svgWidth + leftMargin + containerMargin) / 2
+        ? "left"
+        : "right";
     const space = [
       Math.min(
-        svgWidth / 2 - containerMargin * 2,
+        0.4 * svgWidth - 2 * containerMargin,
         direction === "left"
-          ? x - containerMargin * 2
+          ? x - containerMargin - leftMargin
           : svgWidth - (x + width) - containerMargin * 2
       ),
-      svgHeight - containerMargin * 2,
+      0.9 * svgHeight - containerMargin * 2,
     ];
 
     const stateAspect = width / height;
@@ -261,7 +499,9 @@ export default class DetailsView extends BaseView {
 
     const [containerWidth, containerHeight] = [
       spaceAspect > stateAspect ? space[1] * stateAspect : space[0],
-      spaceAspect < stateAspect ? space[0] / stateAspect : space[1],
+      spaceAspect < stateAspect
+        ? space[0] / stateAspect + topInfoMargin
+        : space[1],
     ];
 
     overlayGroup.classed("open", true);
@@ -314,6 +554,54 @@ export default class DetailsView extends BaseView {
       .select(".overlay-container .overlay-caption")
       .text(`Deadliest City: ${topCity[0].city} (${topCity.length})`);
 
+    overlayGroup.selectAll(".bg-rect").attr("width", containerWidth - 28);
+
+    overlayGroup.selectAll(".gender-chart").each(function () {
+      const chart = d3.select(this);
+
+      const totalWidth = 150;
+      const percentMale = (byGender.M || 0) / byGender.__total__;
+      const percentFemale = (byGender.F || 0) / byGender.__total__;
+
+      const widthMale = totalWidth * percentMale;
+
+      // gender-bar gender-label
+      chart
+        .select(".gender-label-m")
+        .text(`${(percentMale * 100).toFixed()}% M`);
+      chart
+        .select(".gender-label-f")
+        .text(`${(percentFemale * 100).toFixed()}% F`);
+
+      chart.select(".gender-bar-m").attr("width", widthMale);
+      chart
+        .select(".gender-bar-f")
+        .attr("x", widthMale)
+        .attr("width", totalWidth - widthMale);
+    });
+
+    overlayGroup.selectAll(".age-chart").each(function () {
+      const chart = d3.select(this);
+
+      const { 0: none, ...ages } = byAge;
+
+      const yMax = d3.max(Object.values(ages));
+
+      const totalWidth = 150;
+      const totalHeight = 24;
+      const line = d3
+        .line()
+        .x((d) => (totalWidth * d) / 100)
+        .y((d) => totalHeight - (totalHeight * (ages[d] || 0)) / yMax);
+
+      chart.select(".age-max-y").text(yMax);
+      chart
+        .select(".sparkline")
+        .data([d3.range(1, 100)])
+        .join("path")
+        .attr("d", (d) => line(d));
+    });
+
     overlayGroup
       .select(".overlay-container")
       .selectAll(".spike")
@@ -331,7 +619,9 @@ export default class DetailsView extends BaseView {
           .attr("cx", x)
           .attr("cy", y)
           .attr("r", (d) => d)
-          .style("fill", (d, i) => ["url(#dot)", "#fb8072"][i]);
+          .style("fill", (d, i) => ["url(#dot)", "#fb8072"][i])
+          .append("title")
+          .text(`${stateData[d][0].city}: ${stateData[d].length}`);
       })
       .attr("class", "spike");
   }
@@ -368,13 +658,18 @@ export default class DetailsView extends BaseView {
     statesGroup
       .selectAll("path")
       .classed("selected", false)
-      .style("fill", (d) =>
-        !byState[d.properties.name] || byState[d.properties.name].length === 0
-          ? "url(#diag-hatch)"
-          : colorScale(
-              byState[d.properties.name] && byState[d.properties.name].length
-            )
-      )
+      .style("fill", (d) => {
+        if (
+          !byState[d.properties.name] ||
+          byState[d.properties.name].length === 0
+        ) {
+          return "url(#diag-hatch)";
+        } else {
+          return colorScale(
+            getScaleInput[currentScale](byState[d.properties.name])
+          );
+        }
+      })
       .style("stroke-width", null);
     // nationGroup.selectAll("path");
   }
