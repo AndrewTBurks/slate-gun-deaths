@@ -3,7 +3,7 @@ import { groupBy } from "./util/data-utils.js";
 
 const MARGIN = {
   left: 30,
-  top: 48,
+  top: 36,
   bottom: 20,
   right: 15,
 };
@@ -16,8 +16,8 @@ export default class TimelineView extends BaseView {
       .append("text")
       .attr("class", "view-title")
       .attr("x", 0)
-      .attr("y", 24)
-      .text("Deaths Over Time");
+      .attr("y", 14)
+      .text("Daily Deaths Over Time");
 
     this.chart = this.svg.append("g");
   }

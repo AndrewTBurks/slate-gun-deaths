@@ -22,7 +22,7 @@ const scales = {
   count(data) {
     return d3
       .scaleSequential(d3.interpolateMagma)
-      .domain([0, d3.max(Object.values(data), (d) => d.length)]);
+      .domain([1, d3.max(Object.values(data), (d) => d.length)]);
   },
   gender(data) {
     return d3
@@ -42,7 +42,7 @@ const scales = {
       .domain([0, 1]);
   },
   age(data) {
-    return d3.scaleSequential(d3.interpolateGnBu).domain([0, 100]);
+    return d3.scaleSequential(d3.interpolateBuPu).domain([100, 0]);
   },
 };
 
@@ -60,6 +60,20 @@ const getScaleInput = {
   },
 };
 
+const getScaleLabels = {
+  count(domain) {
+    return d3
+      .range(7)
+      .map((i) => (domain[0] + (i * (domain[1] - domain[0])) / 6).toFixed());
+  },
+  gender() {
+    return ["100% F", "", "", "Equal", "", "", "100% M"];
+  },
+  age(domain) {
+    return d3.range(7).map((i) => (domain[1] + (i * domain[0]) / 6).toFixed(1));
+  },
+};
+
 export default class DetailsView extends BaseView {
   _onSelect = () => null;
   statesGroup = null;
@@ -70,31 +84,6 @@ export default class DetailsView extends BaseView {
 
   init() {
     const defs = this.svg.append("defs");
-
-    const gradient = defs.append("radialGradient").attr("id", "dot");
-    gradient
-      .append("stop")
-      .attr("stop-color", "#fb8072")
-      .attr("stop-opacity", 0.75);
-    gradient
-      .append("stop")
-      .attr("offset", "100%")
-      .attr("stop-color", "#999")
-      .attr("stop-opacity", 0);
-
-    const sparklineGradient = defs
-      .append("linearGradient")
-      .attr("id", "sparkline-fill")
-      .attr("gradientTransform", "rotate(90)");
-    sparklineGradient
-      .append("stop")
-      .attr("stop-color", "#E53E3E")
-      .attr("stop-opacity", 0.75);
-    sparklineGradient
-      .append("stop")
-      .attr("offset", "100%")
-      .attr("stop-color", "#FEB2B2")
-      .attr("stop-opacity", 0);
 
     const hatched = defs
       .append("pattern")
@@ -279,13 +268,23 @@ export default class DetailsView extends BaseView {
 
             d3.select(this)
               .append("text")
+              .classed("age-y-label", true)
+              .style("fill", "#a0aec0")
+              .attr("text-anchor", "end")
+              .attr("font-size", 14)
+              .attr("x", -24)
+              .attr("y", 16)
+              .text("#");
+
+            d3.select(this)
+              .append("text")
               .classed("age-max-x", true)
               .style("fill", "#a0aec0")
               .attr("text-anchor", "start")
               .attr("font-size", 12)
               .attr("x", 154)
               .attr("y", 24)
-              .text("100");
+              .text("100 yrs");
 
             d3.select(this)
               .append("path")
@@ -311,7 +310,7 @@ export default class DetailsView extends BaseView {
       .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
 
-    this.legendG = this.svg.append("g");
+    this.legendG = this.svg.append("g").attr("transform", "translate(0, 120)");
 
     d3.select(".map select").on("change", (e) => {
       currentScale = e.target.value;
@@ -333,8 +332,124 @@ export default class DetailsView extends BaseView {
       .attr("y", 22)
       .attr("text-anchor", "middle")
       .text("Legend")
-      .attr("font-size", 18)
+      .attr("font-size", 14)
       .attr("font-weight", 300);
+
+    this.legendG
+      .append("text")
+      .attr("x", 40)
+      .attr("y", 42)
+      .attr("text-anchor", "middle")
+      .style("filter", "url(#drop-shadow)")
+      .text("State")
+      .attr("font-size", 14)
+      .attr("font-weight", 600);
+
+    this.legendG
+      .append("g")
+      .classed("state-g", true)
+      .attr("transform", "translate(40, 52)")
+      .selectAll(".swatch")
+      .data(d3.range(7))
+      .join("g")
+      .classed("swatch", true)
+      .attr("transform", (d) => `translate(0, ${(6 - d) * 22})`)
+      .each(function (d) {
+        d3.select(this)
+          .append("rect")
+          .attr("x", -30)
+          .attr("width", 60)
+          .attr("height", 22)
+          .attr("fill", scales.age()(d * 10));
+
+        d3.select(this)
+          .append("text")
+          .attr("y", 16)
+          .attr("text-anchor", "middle")
+          .attr("fill", "white")
+          .style("filter", "url(#drop-shadow)")
+          .style("text-shadow", "0 0 1px #000c")
+          .style("font-size", 14)
+          .attr("font-weight", 700)
+          .text(d);
+      });
+
+    this.legendG
+      .select(".state-g")
+      .append("g")
+      .classed("swatch-none", true)
+      .attr("transform", (d) => `translate(0, ${7 * 22})`)
+      .each(function (d) {
+        d3.select(this)
+          .append("rect")
+          .attr("x", -30)
+          .attr("width", 60)
+          .attr("height", 22)
+          .attr("fill", "var(--background)");
+
+        d3.select(this)
+          .append("rect")
+          .attr("x", -30)
+          .attr("width", 60)
+          .attr("height", 22)
+          .style("fill", "url(#diag-hatch)")
+          .style("stroke", "#718096")
+          .style("stroke-width", 0.5);
+
+        d3.select(this)
+          .append("text")
+          .attr("y", 18)
+          .attr("text-anchor", "middle")
+          .attr("fill", "white")
+          .style("filter", "url(#drop-shadow)")
+          .style("text-shadow", "0 0 1px #000c")
+          .style("font-size", 16)
+          .attr("font-weight", 700)
+          .text("∅");
+      });
+
+    this.legendG
+      .append("text")
+      .attr("x", 120)
+      .attr("y", 42)
+      .attr("text-anchor", "middle")
+      .style("filter", "url(#drop-shadow)")
+      .text("City")
+      .attr("font-size", 14)
+      .attr("font-weight", 600);
+
+    this.legendG
+      .append("g")
+      .classed("city-g", true)
+      .style("opacity", 0)
+      .attr("transform", "translate(128, 58)")
+      .selectAll(".circle-swatch")
+      .data(d3.range(5))
+      .join("g")
+      .classed("circle-swatch", true)
+      .attr("transform", (d) => `translate(0, ${(4 - d) * 36})`)
+      .each(function (d) {
+        d3.select(this)
+          .selectAll("circle")
+          .data([1 + (d * 15) / 4, 1])
+          .join("circle")
+          .attr("cx", 10)
+          .attr("cy", 11)
+          .attr("r", (d) => d)
+          .attr("fill", (d, i) => ["url(#dot)", "#fb8072"][i]);
+
+        d3.select(this)
+          .append("text")
+          .attr("x", -12)
+          .attr("y", 16)
+          .attr("text-anchor", "end")
+          .attr("fill", "white")
+          .style("filter", "url(#drop-shadow)")
+          .style("text-shadow", "0 0 1px #000c")
+          .style("font-size", 14)
+          .attr("font-weight", 700)
+          .text(d);
+      });
   }
 
   onSelect(listener) {
@@ -354,6 +469,19 @@ export default class DetailsView extends BaseView {
     const byState = groupBy(data, "state");
 
     const colorScale = scales[currentScale](byState);
+    const colorDomain = colorScale.domain();
+    const legendPoints = d3
+      .range(7)
+      .map((i) => d3.min(colorDomain) + (i * d3.max(colorDomain)) / 6);
+
+    console.log(legendPoints);
+
+    const legendLabels = getScaleLabels[currentScale](colorScale.domain());
+
+    const swatches = this.legendG.select(".state-g").selectAll(".swatch");
+
+    swatches.select("rect").attr("fill", (d) => colorScale(legendPoints[d]));
+    swatches.select("text").text((d) => legendLabels[d]);
 
     getStates().then(({ states, nation }) => {
       projection.fitExtent(extent, nation[0]);
@@ -471,7 +599,23 @@ export default class DetailsView extends BaseView {
     const circleScale = d3
       .scaleLinear()
       .domain([1, d3.max(Object.values(stateData), (d) => d.length)])
-      .range([2, 20]);
+      .range([1, 15]);
+
+    const circleDomain = circleScale.domain();
+    const circleValues = d3
+      .range(5)
+      .map((i) =>
+        (
+          circleDomain[0] +
+          (i * (circleDomain[1] - circleDomain[0])) / 4
+        ).toFixed()
+      );
+
+    this.legendG.selectAll(".city-g").style("opacity", 1);
+
+    const swatches = this.legendG.select(".city-g").selectAll(".circle-swatch");
+
+    swatches.select("text").text((d) => circleValues[d]);
 
     const [x, y] = [bounds[0][0] - boxMargin, bounds[0][1] - boxMargin];
 
@@ -619,8 +763,10 @@ export default class DetailsView extends BaseView {
           .attr("cx", x)
           .attr("cy", y)
           .attr("r", (d) => d)
-          .style("fill", (d, i) => ["url(#dot)", "#fb8072"][i])
-          .append("title")
+          .attr("fill", (d, i) => ["url(#dot)", "#fb8072"][i])
+          .selectAll("title")
+          .data([null])
+          .join("title")
           .text(`${stateData[d][0].city}: ${stateData[d].length}`);
       })
       .attr("class", "spike");
@@ -629,6 +775,7 @@ export default class DetailsView extends BaseView {
   hideOverlay() {
     const { overlayGroup } = this;
     overlayGroup.classed("open", false);
+    this.legendG.select(".city-g").style("opacity", 0);
 
     overlayGroup
       .select(".indicator")

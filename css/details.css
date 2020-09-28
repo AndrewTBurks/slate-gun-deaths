@@ -41,3 +41,7 @@
   stroke: #5a67d8;
   stroke-width: 1.25;
 }
+
+.stats .x-axis .tick text {
+  transform: translate(0, 4px) rotate(-12deg);
+}

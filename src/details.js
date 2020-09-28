@@ -19,7 +19,7 @@ const charts = {
 };
 
 const PADDING = {
-  top: 120,
+  top: 100,
   bottom: 0,
   left: 0,
   right: 0,
@@ -31,13 +31,13 @@ export default class DetailsView extends BaseView {
       .append("text")
       .attr("class", "view-title")
       .attr("x", 0)
-      .attr("y", 24)
+      .attr("y", 14)
       .text("Distrubtion for");
 
     const legend = this.svg
       .append("g")
       .attr("class", "legend-g")
-      .attr("transform", "translate(8, 30)");
+      .attr("transform", "translate(16, 24)");
 
     const nationalLegend = legend
       .append("g")
@@ -59,14 +59,14 @@ export default class DetailsView extends BaseView {
       .append("text")
       .attr("x", 54)
       .attr("y", 20)
-      .attr("font-size", 16)
+      .attr("font-size", 12)
       .attr("font-weight", 300)
       .text("National");
 
     const filteredLegend = legend
       .append("g")
       .attr("id", "time-legend")
-      .attr("transform", "translate(0, 28)");
+      .attr("transform", "translate(0, 22)");
 
     filteredLegend
       .append("path")
@@ -83,14 +83,14 @@ export default class DetailsView extends BaseView {
       .append("text")
       .attr("x", 54)
       .attr("y", 20)
-      .attr("font-size", 16)
+      .attr("font-size", 12)
       .attr("font-weight", 300)
       .text("Selected Time Range");
 
     const stateLegend = legend
       .append("g")
       .attr("id", "state-legend")
-      .attr("transform", "translate(0, 56)");
+      .attr("transform", "translate(0, 44)");
 
     stateLegend
       .append("rect")
@@ -104,7 +104,7 @@ export default class DetailsView extends BaseView {
       .append("text")
       .attr("x", 54)
       .attr("y", 20)
-      .attr("font-size", 16)
+      .attr("font-size", 12)
       .attr("font-weight", 300)
       .text("Selected State");
   }
@@ -202,7 +202,7 @@ function multiSeriesChart(selection, { width, height }, { all, time, state }) {
       .range([height - MARGIN.bottom, MARGIN.top]);
 
     const xAxis = d3.axisBottom(xScale);
-    const yAxis = d3.axisLeft(yScale).tickFormat(d3.format(".1~%")).ticks(6);
+    const yAxis = d3.axisLeft(yScale).tickFormat(d3.format(".1~%")).ticks(4);
 
     const line = d3
       .line(([x]) => xScale(x) + xScale.bandwidth() / 2)

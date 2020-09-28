@@ -36,26 +36,34 @@
   </head>
   <body>
     <div class="content">
-      <div class="header dp-8">Slate Gun Deaths Visualization</div>
+      <div class="header dp-8">
+        Slate Gun Deaths Visualization
+        <a
+          href="https://andrewtburks.dev/blog/slate-gun-deaths"
+          target="_blank"
+          rel="noopener noreferrer"
+          >About</a
+        >
+      </div>
       <div class="map dp-1" style="position: relative">
         <div
           class="view-title"
-          style="position: absolute; left: 16px; top: 20px"
+          style="position: absolute; left: 16px; top: 12px"
         >
           Deaths by State during Time Window
           <div
             style="
               margin-left: 10px;
               font-family: var(--font);
-              font-size: 16px;
+              font-size: 12px;
               font-weight: 300;
             "
           >
-            Color by:
+            Color States by:
             <select className="dp-8">
               <option value="count">Count</option>
-              <option value="gender">Gender</option>
-              <option value="age">Age</option>
+              <option value="gender">Gender %</option>
+              <option value="age">Mean Age</option>
             </select>
           </div>
         </div>
@@ -73,6 +81,28 @@
     <div class="box dp-12">dp-12</div>
     <div class="box dp-16">dp-16</div>
     <div class="box dp-24">dp-24</div> -->
+
+    <svg style="visibility: hidden">
+      <defs>
+        <radialGradient id="dot">
+          <stop stop-color="#FC8181" stop-opacity="0.75"></stop>
+          <stop stop-color="#9B2C2C" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <linearGradient id="sparkline-fill" gradientTransform="rotate(90)">
+          <stop stop-color="#E53E3E" stop-opacity="0.75"></stop>
+          <stop stop-color="#FEB2B2" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <filter id="drop-shadow">
+          <feDropShadow
+            dx="0.2"
+            dy="0.4"
+            stdDeviation="1"
+            width="200%"
+            height="200%"
+          />
+        </filter>
+      </defs>
+    </svg>
 
     <script src="./src/main.js" type="module"></script>
   </body>
